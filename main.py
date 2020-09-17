@@ -14,10 +14,10 @@ class SimpleHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         self.send_header("Content-Type", 'application/octet-stream')
         
         file_path = FILEPATH
-        query_components = parse_qs(urlparse(self.path).query)
-        if 'hash' in query_components:
-            hash = query_components['hash'][0]
-            file_path = f'./{hash}'
+        #query_components = parse_qs(urlparse(self.path).query)
+        #if 'hash' in query_components:
+        #    hash = query_components['hash'][0]
+        #    file_path = f'./{hash}'
         print(file_path)
         with open(file_path, 'rb') as f:
             self.send_header("Content-Disposition", 'attachment; filename="{}"'.format(os.path.basename(file_path)))
