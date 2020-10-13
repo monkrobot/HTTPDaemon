@@ -16,4 +16,4 @@ if action == 'upload':
     subprocess.check_output([f"curl -F 'file=@{file_name}' http://{address}/"], shell=True)
 
 if action == 'delete':
-    subprocess.check_output([f"curl -X 'DELETE' http://{address}?del={file_name}"], shell=True)
+    subprocess.check_output([f"curl -X 'DELETE' http://{address}/?del={file_name}"], shell=True)
