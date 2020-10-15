@@ -7,6 +7,7 @@ verify_ssl = true
 
 [packages]
 urllib3 = "*"
+python-daemon = "*"
 
 [requires]
 python_version = "3.7"

@@ -10,10 +10,13 @@ file_name = argv[3]
 
 if action == 'download':
     #subprocess.check_output([f'curl -O http://{address}/{file_name}'], shell=True)
-    subprocess.check_output([f'curl -O http://{address}/?filename={file_name}'], shell=True)
+    resp = subprocess.check_output([f'curl -O http://{address}/?filename={file_name}'], shell=True)
+    print(str(resp, 'utf-8'))
 
 if action == 'upload':
-    subprocess.check_output([f"curl -F 'file=@{file_name}' http://{address}/"], shell=True)
+    resp = subprocess.check_output([f"curl -F 'file=@{file_name}' http://{address}/"], shell=True)
+    print('file hash:', str(resp, 'utf-8'))
 
 if action == 'delete':
-    subprocess.check_output([f"curl -X 'DELETE' http://{address}/?del={file_name}"], shell=True)
+    resp = subprocess.check_output([f"curl -X 'DELETE' http://{address}/?del={file_name}"], shell=True)
+    print(str(resp, 'utf-8'))
