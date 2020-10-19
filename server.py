@@ -57,9 +57,9 @@ class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
                 self.send_header("Content-type", "text/plain")
                 self.send_header("Content-Length", str(length))
                 self.end_headers()
-        if response:
-            self.copyfile(response, self.wfile)
-            response.close()
+            if response:
+                self.copyfile(response, self.wfile)
+                response.close()
 
     # This function allow client to upload file
     def do_POST(self):     
@@ -135,4 +135,4 @@ def start_server(port=8000):
 
 
 if __name__ == "__main__":
-    start_server(port=8001)
+    start_server(port=8000)
