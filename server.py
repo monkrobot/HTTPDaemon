@@ -26,11 +26,13 @@ class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
 
     # This function allow client to download file
     def do_GET(self):
+        response = io.BytesIO()
         try:
             query_components = parse_qs(urlparse(self.path).query)
+            print('query_components:', query_components)
             file_name = ''.join(query_components['filename'])
         except KeyError:
-            response = io.BytesIO()
+            
             response.write(b"To download file enter filename\n")
             length = response.tell()
             response.seek(0)
@@ -49,7 +51,7 @@ class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
                     self.end_headers()
                     shutil.copyfileobj(f, self.wfile)
             else:
-                response = io.BytesIO()
+                
                 response.write(b"No such file\n")
                 length = response.tell()
                 response.seek(0)
@@ -86,7 +88,7 @@ class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         file_name = ''.join(query_components['del'])
         file_folder = Path(f'./{file_name[0:2]}')
         file_path = file_folder / f'{file_name}'
-        #file_path = Path(f'./{file_name[0:2]}/{file_name}')
+        
         if file_path.exists():
             file_path.unlink()
             try:
@@ -103,9 +105,9 @@ class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         pdict['CONTENT-LENGTH'] = int(self.headers['Content-Length'])
         if ctype == 'multipart/form-data':
             form = cgi.FieldStorage( fp=self.rfile, headers=self.headers, environ={'REQUEST_METHOD':'POST', 'CONTENT_TYPE':self.headers['Content-Type'], })
-            
             hash_obj = hashlib.md5(form["file"].filename.encode())
             hash_filename = hash_obj.hexdigest()
+
             init_p = Path('.')
             hash_p = init_p / hash_filename[0:2]
             if not hash_p.exists():
@@ -114,10 +116,8 @@ class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
                 if isinstance(form["file"], list):
                     for record in form["file"]:
                         open(f"./{hash_p}/{hash_filename}", "wb").write(record.file.read())
-                        #open("./%s"%record.filename, "wb").write(record.file.read())
                 else:
                     open(f"./{hash_p}/{hash_filename}", "wb").write(form["file"].file.read())
-                    #open("./%s"%form["file"].filename, "wb").write(form["file"].file.read())
             except IOError:
                     return (False, "Can't create file to write, do you have permission to write?")
         return (True, "Files uploaded", hash_filename)
