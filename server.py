@@ -6,6 +6,7 @@ import os
 import shutil
 import socketserver
 
+from http.server import BaseHTTPRequestHandler
 from pathlib import Path
 from sys import argv
 from urllib.parse import urlparse
@@ -22,7 +23,10 @@ if argv[2:]:
 else:
     port = 8000
 
-class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
+
+#class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
+class CustomHTTPRequestHandler(BaseHTTPRequestHandler):
+
 
     # This function allow client to download file
     def do_GET(self):
@@ -60,7 +64,8 @@ class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
                 self.send_header("Content-Length", str(length))
                 self.end_headers()
             if response:
-                self.copyfile(response, self.wfile)
+                #self.copyfile(response, self.wfile)
+                shutil.copyfileobj(response, self.wfile)
                 response.close()
 
     # This function allow client to upload file
@@ -79,7 +84,8 @@ class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         self.send_header("Content-Length", str(length))
         self.end_headers()
         if response:
-            self.copyfile(response, self.wfile)
+            #self.copyfile(response, self.wfile)
+            shutil.copyfileobj(response, self.wfile)
             response.close()
 
     # This function allow client to delete file
@@ -104,22 +110,26 @@ class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         pdict['boundary'] = bytes(pdict['boundary'], "utf-8")
         pdict['CONTENT-LENGTH'] = int(self.headers['Content-Length'])
         if ctype == 'multipart/form-data':
-            form = cgi.FieldStorage( fp=self.rfile, headers=self.headers, environ={'REQUEST_METHOD':'POST', 'CONTENT_TYPE':self.headers['Content-Type'], })
-            hash_obj = hashlib.md5(form["file"].filename.encode())
-            hash_filename = hash_obj.hexdigest()
+            #form = cgi.FieldStorage( fp=self.rfile, headers=self.headers, environ={'REQUEST_METHOD':'POST', 'CONTENT_TYPE':self.headers['Content-Type'], })
+            form = self.rfile
+            print('form:', form)
+            print('form:', form.getlist("file"))
+            #hash_obj = hashlib.md5(form["file"].filename.encode())
+            #hash_filename = hash_obj.hexdigest()
 
-            init_p = Path('.')
-            hash_p = init_p / hash_filename[0:2]
-            if not hash_p.exists():
-                hash_p.mkdir()
-            try:
-                if isinstance(form["file"], list):
-                    for record in form["file"]:
-                        open(f"./{hash_p}/{hash_filename}", "wb").write(record.file.read())
-                else:
-                    open(f"./{hash_p}/{hash_filename}", "wb").write(form["file"].file.read())
-            except IOError:
-                    return (False, "Can't create file to write, do you have permission to write?")
+            #init_p = Path('.')
+            #hash_p = init_p / hash_filename[0:2]
+            #if not hash_p.exists():
+            #    hash_p.mkdir()
+            #try:
+            #    if isinstance(form["file"], list):
+            #        for record in form["file"]:
+            #            open(f"./{hash_p}/{hash_filename}", "wb").write(record.file.read())
+            #    else:
+            #        open(f"./{hash_p}/{hash_filename}", "wb").write(form["file"].file.read())
+            #except IOError:
+            #        return (False, "Can't create file to write, do you have permission to write?")
+        hash_filename = "HELLO_WORLD"
         return (True, "Files uploaded", hash_filename)
 
 
