@@ -13,17 +13,23 @@ if action == "download":
     with open(f'{filename}', 'wb') as f:
         f.write(resp.content)
     print(resp.text)
-    print(resp.content)
+    #print(resp.content)
 
 
 # upload to server
 if action == "upload":
-    url = 'http://localhost:8000/'
+    url = 'http://localhost:8000/post?'
     print(filename)
 
     with open(f'{filename}', 'rb') as f:
 
-        files = {'bytefiles': f}
+        files = {'file': f}
 
-        r = req.post(url, files=files)
-        print(r.text)
+        resp = req.post(url, files=files)
+        print(resp.text)
+
+
+# delete from server
+if action == "delete":
+    resp = req.delete(f'http://localhost:8000/?del={filename}')
+    print(resp)

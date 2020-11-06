@@ -94,42 +94,56 @@ class CustomHTTPRequestHandler(BaseHTTPRequestHandler):
         file_name = ''.join(query_components['del'])
         file_folder = Path(f'./{file_name[0:2]}')
         file_path = file_folder / f'{file_name}'
+
+        response = io.BytesIO()
         
         if file_path.exists():
             file_path.unlink()
             try:
                 file_folder.rmdir()
             except OSError:
-                print(f'{file_folder} is not empty to delete')
+                print(f"{file_folder} is not empty to delete")
+            
+            response.write(b"File deleted\n")
+            length = response.tell()
+            response.seek(0)
             self.send_response(200)
         else:
+            response.write(b"No such file\n")
+            length = response.tell()
+            response.seek(0)
             self.send_error(404)
+
+        if response:
+            shutil.copyfileobj(response, self.wfile)
+            response.close()
 
     def deal_post_data(self):
         ctype, pdict = cgi.parse_header(self.headers['Content-Type'])
         pdict['boundary'] = bytes(pdict['boundary'], "utf-8")
         pdict['CONTENT-LENGTH'] = int(self.headers['Content-Length'])
         if ctype == 'multipart/form-data':
-            #form = cgi.FieldStorage( fp=self.rfile, headers=self.headers, environ={'REQUEST_METHOD':'POST', 'CONTENT_TYPE':self.headers['Content-Type'], })
-            form = self.rfile
-            print('form:', form)
-            print('form:', form.getlist("file"))
-            #hash_obj = hashlib.md5(form["file"].filename.encode())
-            #hash_filename = hash_obj.hexdigest()
+            form = cgi.FieldStorage( fp=self.rfile, headers=self.headers, environ={'REQUEST_METHOD':'POST', 'CONTENT_TYPE':self.headers['Content-Type'], })
+            
+            #print('form:', form)
+            #print('form:', form.getlist("file"))
+            #print('form:', form["file"].filename.encode())
+            hash_obj = hashlib.md5(form["file"].filename.encode())
+            hash_filename = hash_obj.hexdigest()
 
-            #init_p = Path('.')
-            #hash_p = init_p / hash_filename[0:2]
-            #if not hash_p.exists():
-            #    hash_p.mkdir()
-            #try:
-            #    if isinstance(form["file"], list):
-            #        for record in form["file"]:
-            #            open(f"./{hash_p}/{hash_filename}", "wb").write(record.file.read())
-            #    else:
-            #        open(f"./{hash_p}/{hash_filename}", "wb").write(form["file"].file.read())
-            #except IOError:
-            #        return (False, "Can't create file to write, do you have permission to write?")
-        hash_filename = "HELLO_WORLD"
+            init_p = Path('.')
+            hash_p = init_p / hash_filename[0:2]
+            if not hash_p.exists():
+                hash_p.mkdir()
+            try:
+                if isinstance(form["file"], list):
+                    for record in form["file"]:
+                        open(f"./{hash_p}/{hash_filename}", "wb").write(record.file.read())
+                else:
+                    open(f"./{hash_p}/{hash_filename}", "wb").write(form["file"].file.read())
+            except IOError:
+                    return (False, "Can't create file to write, do you have permission to write?")
+        #hash_filename = "HELLO_WORLD"
         return (True, "Files uploaded", hash_filename)
 
 
