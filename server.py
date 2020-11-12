@@ -24,7 +24,7 @@ else:
     port = 8000
 
 
-#class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
+#
 class CustomHTTPRequestHandler(BaseHTTPRequestHandler):
 
 
@@ -33,7 +33,6 @@ class CustomHTTPRequestHandler(BaseHTTPRequestHandler):
         response = io.BytesIO()
         try:
             query_components = parse_qs(urlparse(self.path).query)
-            print('query_components:', query_components)
             file_name = ''.join(query_components['filename'])
         except KeyError:
             
@@ -42,12 +41,12 @@ class CustomHTTPRequestHandler(BaseHTTPRequestHandler):
             response.seek(0)
             self.send_response(404)
         else:
-            self.send_response(200)
-            self.send_header("Content-Type", 'application/octet-stream')
+            
 
             file_path = Path(f'./{file_name[0:2]}/{file_name}')
             if file_path.exists():
-                print(file_path)
+                self.send_response(200)
+                self.send_header("Content-Type", 'application/octet-stream')
                 with open(file_path, 'rb') as f:
                     self.send_header("Content-Disposition", 'attachment; filename="{}"'.format(os.path.basename(file_path)))
                     fs = os.fstat(f.fileno())
@@ -64,7 +63,6 @@ class CustomHTTPRequestHandler(BaseHTTPRequestHandler):
                 self.send_header("Content-Length", str(length))
                 self.end_headers()
             if response:
-                #self.copyfile(response, self.wfile)
                 shutil.copyfileobj(response, self.wfile)
                 response.close()
 
@@ -84,7 +82,6 @@ class CustomHTTPRequestHandler(BaseHTTPRequestHandler):
         self.send_header("Content-Length", str(length))
         self.end_headers()
         if response:
-            #self.copyfile(response, self.wfile)
             shutil.copyfileobj(response, self.wfile)
             response.close()
 
@@ -96,6 +93,9 @@ class CustomHTTPRequestHandler(BaseHTTPRequestHandler):
         file_path = file_folder / f'{file_name}'
 
         response = io.BytesIO()
+        self.send_header("Content-type", "text/plain")
+        self.send_header("Content-Length", str(length))
+        self.end_headers()
         
         if file_path.exists():
             file_path.unlink()
@@ -124,10 +124,6 @@ class CustomHTTPRequestHandler(BaseHTTPRequestHandler):
         pdict['CONTENT-LENGTH'] = int(self.headers['Content-Length'])
         if ctype == 'multipart/form-data':
             form = cgi.FieldStorage( fp=self.rfile, headers=self.headers, environ={'REQUEST_METHOD':'POST', 'CONTENT_TYPE':self.headers['Content-Type'], })
-            
-            #print('form:', form)
-            #print('form:', form.getlist("file"))
-            #print('form:', form["file"].filename.encode())
             hash_obj = hashlib.md5(form["file"].filename.encode())
             hash_filename = hash_obj.hexdigest()
 
@@ -143,7 +139,6 @@ class CustomHTTPRequestHandler(BaseHTTPRequestHandler):
                     open(f"./{hash_p}/{hash_filename}", "wb").write(form["file"].file.read())
             except IOError:
                     return (False, "Can't create file to write, do you have permission to write?")
-        #hash_filename = "HELLO_WORLD"
         return (True, "Files uploaded", hash_filename)
 
 
