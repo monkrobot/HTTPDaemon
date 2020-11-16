@@ -24,7 +24,7 @@ else:
     port = 8000
 
 
-#
+
 class CustomHTTPRequestHandler(BaseHTTPRequestHandler):
 
 
@@ -88,14 +88,17 @@ class CustomHTTPRequestHandler(BaseHTTPRequestHandler):
     # This function allow client to delete file
     def do_DELETE(self):
         query_components = parse_qs(urlparse(self.path).query)
+        print('self.path:', self.path)
+        print('urlparse(self.path):', urlparse(self.path))
+        print('query_components:', query_components)
         file_name = ''.join(query_components['del'])
         file_folder = Path(f'./{file_name[0:2]}')
         file_path = file_folder / f'{file_name}'
 
-        response = io.BytesIO()
-        self.send_header("Content-type", "text/plain")
-        self.send_header("Content-Length", str(length))
-        self.end_headers()
+        #response = io.BytesIO()
+        #self.send_header("Content-type", "text/plain")
+        #self.send_header("Content-Length", str(length))
+        #self.end_headers()
         
         if file_path.exists():
             file_path.unlink()
@@ -109,10 +112,11 @@ class CustomHTTPRequestHandler(BaseHTTPRequestHandler):
             response.seek(0)
             self.send_response(200)
         else:
+            print("No such file\n")
             response.write(b"No such file\n")
             length = response.tell()
             response.seek(0)
-            self.send_error(404)
+            self.send_response(404)
 
         if response:
             shutil.copyfileobj(response, self.wfile)
