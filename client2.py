@@ -33,11 +33,12 @@ if action == 'upload':
 
 # delete from server
 if action == 'delete':
-    resp = req.delete(f'http://httpbin.org/delete?file=ca')
-    print(resp.url)
-    print(resp.text)
+    #resp = req.delete(f'http://httpbin.org/delete?file=ca')
+    #print(resp.url)
+    #print(resp.text)
 
-    ##resp = req.delete(f'http://localhost:8000/delete?del={filename}')
+    resp = req.delete(f'http://localhost:8000/delete?del={filename}')
+    print(resp.text)
     #resp = req.delete(f'http://localhost:8000/?del={filename}')
     #try:
     #    resp = req.delete(f'http://localhost:8000/delete?del={filename}')

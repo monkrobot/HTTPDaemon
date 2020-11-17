@@ -95,7 +95,7 @@ class CustomHTTPRequestHandler(BaseHTTPRequestHandler):
         file_folder = Path(f'./{file_name[0:2]}')
         file_path = file_folder / f'{file_name}'
 
-        #response = io.BytesIO()
+        response = io.BytesIO()
         #self.send_header("Content-type", "text/plain")
         #self.send_header("Content-Length", str(length))
         #self.end_headers()
@@ -108,16 +108,21 @@ class CustomHTTPRequestHandler(BaseHTTPRequestHandler):
                 print(f"{file_folder} is not empty to delete")
             
             response.write(b"File deleted\n")
-            length = response.tell()
-            response.seek(0)
-            self.send_response(200)
+            #length = response.tell()
+            #response.seek(0)
+            self.send_response(203)
         else:
             print("No such file\n")
             response.write(b"No such file\n")
-            length = response.tell()
-            response.seek(0)
+            #length = response.tell()
+            #response.seek(0)
             self.send_response(404)
 
+        length = response.tell()
+        response.seek(0)
+        self.send_header("Content-type", "text/plain")
+        self.send_header("Content-Length", str(length))
+        self.end_headers()
         if response:
             shutil.copyfileobj(response, self.wfile)
             response.close()
