@@ -19,8 +19,14 @@ if argv[2:]:
 else:
     port = 8000
 
-logging.basicConfig(level=logging.INFO, filename='app.log', format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+#logging.basicConfig(level=logging.INFO, filename='app.log', format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
+logger = logging.getLogger('TESTTTTT')
+logger.setLevel(logging.INFO)
+formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+handler = logging.FileHandler("./app.log")
+handler.setFormatter(formatter)
+logger.addHandler(handler)
 
 
 class CustomHTTPRequestHandler(BaseHTTPRequestHandler):
@@ -32,7 +38,7 @@ class CustomHTTPRequestHandler(BaseHTTPRequestHandler):
         
         query_components = parse_qs(urlparse(self.path).query)
         file_name = ''.join(query_components['filename'])
-        logging.info(f'download query_components: {query_components}, file_name: {file_name}')
+        logger.info(f'download query_components: {query_components}, file_name: {file_name}')
         
         if file_name:
             file_path = Path(f'./{file_name[0:2]}/{file_name}')
@@ -47,7 +53,7 @@ class CustomHTTPRequestHandler(BaseHTTPRequestHandler):
                     #shutil.copyfileobj(f, self.wfile)
             else:
                 response.write(b"No such file to download\n")
-                logging.info('No such file to download')
+                logger.info('No such file to download')
                 length = response.tell()
                 response.seek(0)
                 self.send_response(404)
@@ -71,7 +77,7 @@ class CustomHTTPRequestHandler(BaseHTTPRequestHandler):
     # This function allows client to upload file
     def do_POST(self):
         resp, info, hash_filename = self.deal_post_data()
-        logging.info(f'{resp}, {info}, {hash_filename}, "by: ", {self.client_address}')
+        logger.info(f'{resp}, {info}, {hash_filename}, "by: ", {self.client_address}')
         
         print(resp, info, hash_filename, "by: ", self.client_address)
         response = io.BytesIO()
@@ -94,7 +100,7 @@ class CustomHTTPRequestHandler(BaseHTTPRequestHandler):
         query_components = parse_qs(urlparse(self.path).query)
         file_name = ''.join(query_components['del'])
 
-        logging.info(f'delete query_components: {query_components}, file_name: {file_name}')
+        logger.info(f'delete query_components: {query_components}, file_name: {file_name}')
 
         file_folder = Path(f'./{file_name[0:2]}')
         file_path = file_folder / f'{file_name}'
@@ -109,13 +115,13 @@ class CustomHTTPRequestHandler(BaseHTTPRequestHandler):
                 print(f"{file_folder} is not empty to delete")
             
             response.write(b"File deleted\n")
-            logging.info('File deleted')
+            logger.info('File deleted')
             self.send_response(204)
         else:
             print("No such file\n")
             response.write(f"{query_components}\n".encode())
             #response.write(b"No such file to delete\n")
-            logging.info('No such file to delete')
+            logger.info('No such file to delete')
             self.send_response(404)
 
         length = response.tell()
@@ -131,7 +137,7 @@ class CustomHTTPRequestHandler(BaseHTTPRequestHandler):
         ctype, pdict = cgi.parse_header(self.headers['Content-Type'])
         pdict['boundary'] = bytes(pdict['boundary'], "utf-8")
         pdict['CONTENT-LENGTH'] = int(self.headers['Content-Length'])
-        logging.info(f'ctype, pdict: {ctype}, {pdict}')
+        logger.info(f'ctype, pdict: {ctype}, {pdict}')
         if ctype == 'multipart/form-data':
             form = cgi.FieldStorage( fp=self.rfile, headers=self.headers, environ={'REQUEST_METHOD':'POST', 'CONTENT_TYPE':self.headers['Content-Type'], })
             hash_obj = hashlib.md5(form["file"].filename.encode())
@@ -155,11 +161,13 @@ class CustomHTTPRequestHandler(BaseHTTPRequestHandler):
 Handler = CustomHTTPRequestHandler
 
 def start_server(port=8000):
-    logging.info('start server')
+    #logging.info('start server')
+    logger.info('start server')
     try:
         with socketserver.TCPServer(("", port), Handler) as httpd:
             print("serving at port", port)
-            logging.info('serving at port %d' % port)
+            #logging.info('serving at port %d' % port)
+            logger.info('serving at port %d' % port)
             httpd.serve_forever()
     except OSError:
         print('Address already in use. Please change port')
